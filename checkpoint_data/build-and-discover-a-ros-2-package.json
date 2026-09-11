@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "overlay-sourcing",
+      "question": "Why do you source `install/setup.bash` after `colcon build`?",
+      "model_answer": "Sourcing the overlay makes the built package and its registered executables available to the current terminal's ROS 2 environment.",
+      "evidence": [
+        {
+          "label": "Prepare the terminal",
+          "anchor": "#prepare-the-terminal"
+        }
+      ]
+    },
+    {
+      "id": "package-discovery-commands",
+      "question": "Which two commands confirm that a package is installed and has registered executables?",
+      "model_answer": "`ros2 pkg prefix ros2_pubsub` shows its install location, and `ros2 pkg executables ros2_pubsub` lists the executable names.",
+      "evidence": [
+        {
+          "label": "Confirm package discovery",
+          "anchor": "#confirm-package-discovery"
+        }
+      ]
+    }
+  ]
+}

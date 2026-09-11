@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "ros2-graph-purpose",
+      "question": "What is the purpose of organizing a robot as a ROS 2 graph?",
+      "model_answer": "The graph divides an application into focused nodes that exchange typed data through defined interfaces, making components easier to understand, test, and replace independently.",
+      "evidence": [
+        {
+          "label": "The ROS 2 graph",
+          "anchor": "#the-ros-2-graph"
+        }
+      ]
+    },
+    {
+      "id": "ros2-and-linux",
+      "question": "Is ROS 2 an operating system, and what does it depend on?",
+      "model_answer": "ROS 2 is a software framework that runs on Linux. It provides shared communication conventions for programs rather than replacing the operating system.",
+      "evidence": [
+        {
+          "label": "Software layers",
+          "anchor": "#software-layers"
+        }
+      ]
+    }
+  ]
+}

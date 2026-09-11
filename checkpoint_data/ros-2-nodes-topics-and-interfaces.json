@@ -1,0 +1,43 @@
+{
+  "checkpoints": [
+    {
+      "id": "node-definition",
+      "question": "What is a ROS 2 node, and why should it have a focused responsibility?",
+      "model_answer": "A node is an executable that participates in the graph. Keeping one role per node makes it independently inspectable, testable, and replaceable.",
+      "evidence": [
+        {
+          "label": "Nodes",
+          "anchor": "#nodes"
+        }
+      ]
+    },
+    {
+      "id": "message-contract",
+      "question": "What does it mean that a message type is a contract?",
+      "model_answer": "It defines the shape and meaning of exchanged data, allowing a subscriber to handle a publisher's message without importing the publisher's source code.",
+      "evidence": [
+        {
+          "label": "Message contracts",
+          "anchor": "#message-contracts"
+        }
+      ]
+    },
+    {
+      "id": "interface-selection",
+      "question": "Which ROS 2 interface is appropriate for each use case?",
+      "choices": [
+        "Topics for continuous observations; services for one-time requests; actions for cancellable long-running work; parameters for node configuration",
+        "Topics for node configuration; services for continuous data; actions for one-time requests; parameters for long-running work",
+        "Services for everything; topics are deprecated; actions and parameters are optional"
+      ],
+      "correct_choice": "Topics for continuous observations; services for one-time requests; actions for cancellable long-running work; parameters for node configuration",
+      "model_answer": "Topics carry streams. Services provide short request-response interactions. Actions model cancellable work with feedback, and parameters hold named node configuration values.",
+      "evidence": [
+        {
+          "label": "Services, actions, and parameters",
+          "anchor": "#services-actions-and-parameters"
+        }
+      ]
+    }
+  ]
+}

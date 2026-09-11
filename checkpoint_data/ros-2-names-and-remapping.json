@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "unique-node-names",
+      "question": "Why should a second publisher use `__node:=talker_two` or another distinct node name?",
+      "model_answer": "A second publisher should use a distinct node name so node-specific tooling identifies it unambiguously. Duplicate names are allowed, but they can make node-specific tools ambiguous and have unintended side effects.",
+      "evidence": [
+        {
+          "label": "Give a second publisher a distinct node name",
+          "anchor": "#give-a-second-publisher-a-distinct-node-name"
+        }
+      ]
+    },
+    {
+      "id": "bilateral-topic-remapping",
+      "question": "Why must both the publisher and subscriber remap `chatter:=greeting`?",
+      "model_answer": "Both endpoints must refer to the same topic. Remapping only one leaves the publisher and subscriber on different names.",
+      "evidence": [
+        {
+          "label": "Remap both ends of a topic",
+          "anchor": "#remap-both-ends-of-a-topic"
+        }
+      ]
+    }
+  ]
+}
