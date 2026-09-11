@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "unique-node-names",
+      "question": "Why does a second publisher need `__node:=talker_two` or another unique node name?",
+      "model_answer": "Node names must be unique in a ROS 2 graph. Without remapping, the second publisher would conflict with the existing `/talker` name.",
+      "evidence": [
+        {
+          "label": "Give a second publisher a unique node name",
+          "anchor": "#give-a-second-publisher-a-unique-node-name"
+        }
+      ]
+    },
+    {
+      "id": "bilateral-topic-remapping",
+      "question": "Why must both the publisher and subscriber remap `chatter:=greeting`?",
+      "model_answer": "Both endpoints must refer to the same topic. Remapping only one leaves the publisher and subscriber on different names.",
+      "evidence": [
+        {
+          "label": "Remap both ends of a topic",
+          "anchor": "#remap-both-ends-of-a-topic"
+        }
+      ]
+    }
+  ]
+}
