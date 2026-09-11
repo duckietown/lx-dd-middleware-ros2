@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "subscriber-initial-constants",
+      "question": "Which initial subscriber constants must match the publisher for the first run?",
+      "model_answer": "The subscriber needs the same `String` message type and `chatter` topic. Its node name can differ from the publisher's node name.",
+      "evidence": [
+        {
+          "label": "Read and run the subscriber",
+          "anchor": "#read-and-run-the-subscriber"
+        }
+      ]
+    },
+    {
+      "id": "echo-diagnostic-meaning",
+      "question": "What does a successful `ros2 topic echo --once /chatter` prove in the diagnostic order?",
+      "model_answer": "It shows that the publisher and transport can deliver a message. If that succeeds but a subscriber does not receive data, investigate the subscriber configuration.",
+      "evidence": [
+        {
+          "label": "Diagnose missing messages",
+          "anchor": "#diagnose-missing-messages"
+        }
+      ]
+    }
+  ]
+}

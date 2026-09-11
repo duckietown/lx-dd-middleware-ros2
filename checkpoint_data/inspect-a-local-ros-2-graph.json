@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "message-type-inspection",
+      "question": "Which command shows the fields carried by a `std_msgs/msg/String` message?",
+      "model_answer": "`ros2 interface show std_msgs/msg/String` displays the message definition and its fields.",
+      "evidence": [
+        {
+          "label": "Inspect the topic and node",
+          "anchor": "#inspect-the-topic-and-node"
+        }
+      ]
+    },
+    {
+      "id": "single-message-observation",
+      "question": "Which command gives a one-message observation of `/chatter`?",
+      "model_answer": "`ros2 topic echo --once /chatter` waits for one message and then returns.",
+      "evidence": [
+        {
+          "label": "Observe messages",
+          "anchor": "#observe-messages"
+        }
+      ]
+    }
+  ]
+}
