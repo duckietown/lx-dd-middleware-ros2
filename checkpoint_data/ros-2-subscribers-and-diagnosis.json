@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "subscriber-initial-constants",
+      "question": "Which initial subscriber constants must match the publisher for the first run?",
+      "model_answer": "The subscriber needs the same `String` message type and `chatter` topic. Its node name can differ from the publisher's node name.",
+      "evidence": [
+        {
+          "label": "Read and run the subscriber",
+          "anchor": "#read-and-run-the-subscriber"
+        }
+      ]
+    },
+    {
+      "id": "echo-diagnostic-meaning",
+      "question": "How does a message printed by `ros2 topic echo --once /chatter` narrow the diagnosis of a quiet listener?",
+      "model_answer": "It confirms receipt of the publisher's data by the observation terminal's subscription. Focus next on the listener's terminal environment, subscription settings, and receive callback.",
+      "evidence": [
+        {
+          "label": "Diagnose missing messages",
+          "anchor": "#diagnose-missing-messages"
+        }
+      ]
+    }
+  ]
+}
