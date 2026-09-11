@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "package-xml-role",
+      "question": "Which file in an ament_python ROS 2 package declares ROS dependencies?",
+      "model_answer": "`package.xml` declares the package and its ROS dependencies. `setup.py` installs Python code and registers executable names.",
+      "evidence": [
+        {
+          "label": "Workspaces and packages",
+          "anchor": "#workspaces-and-packages"
+        }
+      ]
+    },
+    {
+      "id": "colcon-workspace-variable",
+      "question": "Why should a command use `$COLCON_WS` instead of assuming `/code`?",
+      "model_answer": "The environment variable makes the command work when a workspace is located somewhere other than `/code`.",
+      "evidence": [
+        {
+          "label": "Know the exercise workspace",
+          "anchor": "#know-the-exercise-workspace"
+        }
+      ]
+    }
+  ]
+}

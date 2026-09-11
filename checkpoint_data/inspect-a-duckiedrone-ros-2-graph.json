@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "device-inspection-shells",
+      "question": "Which shell context should run `docker ps`, and which should run `ros2 topic list -t` for the MAVROS graph?",
+      "model_answer": "Run `docker ps` in the base-station or Duckiedrone shell. Run the ROS 2 topic command inside the `ros2-mavros` container shell entered with `docker exec`.",
+      "evidence": [
+        {
+          "label": "Enter the authorized device context",
+          "anchor": "#enter-the-authorized-device-context"
+        }
+      ]
+    },
+    {
+      "id": "topic-namespace-paths",
+      "question": "Why might `/mavros/imu/data` be valid when camera and ToF topics begin with `/ROBOT_NAME`?",
+      "model_answer": "MAVROS uses a separate root-level path, while camera and ToF bridges use the robot-name prefix. The deployed stack and plugins determine the actual topic names.",
+      "evidence": [
+        {
+          "label": "Read the graph",
+          "anchor": "#read-the-graph"
+        }
+      ]
+    }
+  ]
+}

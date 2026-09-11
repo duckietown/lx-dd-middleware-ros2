@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "middleware-discovery",
+      "question": "What must be compatible for a terminal to discover a running ROS 2 graph on a Duckiedrone?",
+      "model_answer": "The terminal needs network reachability plus compatible middleware settings and the same ROS domain identifier, currently `42` for Duckiedrones.",
+      "evidence": [
+        {
+          "label": "Discovery through middleware",
+          "anchor": "#discovery-through-middleware"
+        }
+      ]
+    },
+    {
+      "id": "private-name-resolution",
+      "question": "Where does the private name `~/state` resolve for a node named `/ROBOT_NAME/camera_node`?",
+      "model_answer": "It resolves to `/ROBOT_NAME/camera_node/state`, combining the node's namespace and name with the private suffix.",
+      "evidence": [
+        {
+          "label": "Absolute, relative, and private names",
+          "anchor": "#absolute-relative-and-private-names"
+        }
+      ]
+    }
+  ]
+}

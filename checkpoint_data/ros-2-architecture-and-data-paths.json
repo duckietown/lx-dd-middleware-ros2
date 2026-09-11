@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "data-path-modularity",
+      "question": "Why can a ROS 2 controller consume a pose message without knowing how perception computed it?",
+      "model_answer": "The message type is a contract for the data's form and meaning, so the controller relies on the interface rather than the perception node's implementation.",
+      "evidence": [
+        {
+          "label": "Follow a data path",
+          "anchor": "#follow-a-data-path"
+        }
+      ]
+    },
+    {
+      "id": "duckiedrone-data-paths",
+      "question": "How do camera and PX4 telemetry data reach the ROS 2 graph on a Duckiedrone?",
+      "model_answer": "Camera and ToF drivers publish through DTPS before bridge containers republish into ROS 2. PX4 telemetry moves through MAVLink to the MAVROS bridge, which exposes it to ROS 2.",
+      "evidence": [
+        {
+          "label": "DTPS and ROS 2",
+          "anchor": "#dtps-and-ros-2"
+        }
+      ]
+    }
+  ]
+}
