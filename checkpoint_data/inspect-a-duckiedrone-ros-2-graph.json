@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "device-inspection-shells",
+      "question": "Which shell should run `docker ps` to list Duckiedrone containers, and which should run `ros2 topic list -t` for the MAVROS graph?",
+      "model_answer": "Run `docker ps` in the Duckiedrone shell to find its running services. Run the ROS 2 topic command inside the `ros2-mavros` service-container shell so it uses the configured middleware and domain.",
+      "evidence": [
+        {
+          "label": "Enter the Duckiedrone shell",
+          "anchor": "#enter-the-duckiedrone-shell"
+        }
+      ]
+    },
+    {
+      "id": "mavros-topic-prefix",
+      "question": "Why should you inspect `ros2 topic list -t` instead of adding the Duckiedrone's name to every topic path?",
+      "model_answer": "Topic names depend on their publishers and namespaces. MAVROS uses paths such as `/mavros/state`, while other bridges can include the Duckiedrone's name. The running stack and enabled plugins determine which topics are available.",
+      "evidence": [
+        {
+          "label": "Read the graph",
+          "anchor": "#read-the-graph"
+        }
+      ]
+    }
+  ]
+}
