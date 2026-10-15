@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "timer-replaces-rate",
+      "question": "What replaces a `rospy.Rate` loop in this ROS 2 publisher?",
+      "model_answer": "`create_timer()` schedules periodic callbacks, and `rclpy.spin(node)` keeps the process ready to run those callbacks.",
+      "evidence": [
+        {
+          "label": "Understand the node lifecycle",
+          "anchor": "#understand-the-node-lifecycle"
+        }
+      ]
+    },
+    {
+      "id": "string-message-field",
+      "question": "Which field carries text in a `std_msgs/msg/String` message?",
+      "model_answer": "The message's `data` field contains the text.",
+      "evidence": [
+        {
+          "label": "Read the publisher starter",
+          "anchor": "#read-the-publisher-starter"
+        }
+      ]
+    }
+  ]
+}
