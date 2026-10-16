@@ -6,7 +6,7 @@
 
 `Software: ente`; `Hardware: DD24-B`
 
-A Duckiedrone may collect sensor readings, estimate its state, and control motion concurrently. Dividing that work into independently testable components makes it easier to develop and diagnose, provided those components agree on how to exchange data. Robot Operating System 2 (ROS 2) supplies a graph of communicating nodes and shared interfaces for that purpose.
+Duckiedrones can collect sensor readings, process data into information, estimate their state, and control motion concurrently. Dividing that work into independently testable components makes it easier to develop and diagnose, provided those components agree on how to exchange data. Robot Operating System 2 (ROS 2) is an open source middleware that supplies a graph of communicating nodes and shared interfaces for that purpose.
 
 In this learning experience (LX), you will follow data through that graph, inspect its interfaces, then build and run a Python publisher and subscriber. The local activities make each step observable before you apply the same tools to Duckiedrone telemetry.
 
@@ -95,6 +95,24 @@ Source the ROS 2 environment and any built workspace overlay in each runtime she
 For Duckiedrone inspection, use a Duckiedrone you own or have permission to inspect and follow its physical SSH or local virtual connection procedure. The connection commands in the [Learning Experience (LX): Linux and Networking on the Duckiedrone](https://github.com/duckietown/lx-dd-linux-and-networking) start from a separate base-station terminal; the ROS 2 inspection starts after the Duckiedrone shell is open.
 
 ## Complete the ROS 2 exercise
+
+To build the supplied ROS 2 terminal:
+
+1. Navigate to the LX root in a base-station terminal, for example `cd /home/ubuntu/lxs/lx-dd-middleware-ros2`
+
+2. Build the exercise image:
+
+```bash
+dts code build --local \
+  --recipe /home/ubuntu/lxs/lx-dd-middleware-ros2-recipe \
+  --username duckietown
+```
+
+3. Open the terminal with:
+
+```bash
+dts devel run --username duckietown --cmd bash
+```
 
 The starter package lives in [packages/ros2_pubsub](./packages/ros2_pubsub/). After source changes, build it once to prepare the updated installed package:
 
