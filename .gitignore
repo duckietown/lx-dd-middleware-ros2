@@ -6,3 +6,8 @@ html/*
 
 # otherwise CI thinks index not clean
 *.resolved
+
+# Generated colcon workspace output
+/build/
+/install/
+/log/

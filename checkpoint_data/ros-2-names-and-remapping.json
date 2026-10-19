@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "unique-node-names",
-      "question": "Why should a second publisher use `__node:=talker_two` or another distinct node name?",
-      "model_answer": "A second publisher should use a distinct node name so node-specific tooling identifies it unambiguously. Duplicate names are allowed, but they can make node-specific tools ambiguous and have unintended side effects.",
+      "question": "A second publisher starts with __node:=talker_two. Why is it easier to inspect, and which topic does it publish to in this activity?",
+      "model_answer": "Its distinct node name lets node-specific tools identify the instance unambiguously. It still publishes to /chatter because the relative topic name and root namespace remain unchanged.",
       "evidence": [
         {
           "label": "Give a second publisher a distinct node name",
@@ -13,8 +13,8 @@
     },
     {
       "id": "bilateral-topic-remapping",
-      "question": "Why must both the publisher and subscriber remap `chatter:=greeting`?",
-      "model_answer": "Both endpoints must refer to the same topic. Remapping only one leaves the publisher and subscriber on different names.",
+      "question": "Why did the listener remain quiet when only the publisher received chatter:=greeting, and why did restarting the listener with the same rule restore delivery?",
+      "model_answer": "The publisher used /greeting while the listener still subscribed to /chatter. Applying the rule to the listener made both endpoints use /greeting; their message types and delivery settings were already compatible.",
       "evidence": [
         {
           "label": "Remap both ends of a topic",

@@ -6,11 +6,11 @@ from std_msgs.msg import String
 
 # Choose one message type. Publishers and subscribers on a topic must agree on it.
 MSG_TYPE = String
-# Publish once each second; change this only after the starter node works.
+# Publish once each second; change this only after the starter node works. Note [Hz] = [s]^(-1)
 PUBLISH_RATE_HZ = 1.0
-# Change this text after confirming the starter node runs.
+# Try changing this text after confirming the starter node runs.
 MESSAGE_CONTENT = "Hello from ROS 2!"
-# Change the topic name only when the subscriber uses the same name.
+# Try changing the topic name only when the subscriber uses the same name.
 TOPIC_NAME = "chatter"
 NODE_NAME = "talker"
 # Keep up to this many messages while the subscriber catches up.

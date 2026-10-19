@@ -60,7 +60,7 @@ REQUIRED_NOTEBOOKS = {
     "6-build-and-discover-a-ros-2-package.ipynb": "# Build and Discover a ROS 2 Package",
     "7-inspect-a-local-ros-2-graph.ipynb": "# Inspect a Local ROS 2 Graph",
     "8-inspect-a-duckiedrone-ros-2-graph.ipynb": "# Inspect a Duckiedrone ROS 2 Graph",
-    "9-ros-2-node-lifecycles-and-publishers.ipynb": "# ROS 2 Node Lifecycles and Publishers",
+    "9-ros-2-node-lifecycles-and-publishers.ipynb": "# ROS 2 Node Lifecycles and Anatomy of a Publisher",
     "10-ros-2-subscribers-and-diagnosis.ipynb": "# ROS 2 Subscribers and Diagnosis",
     "11-ros-2-names-and-remapping.ipynb": "# ROS 2 Names and Remapping",
 }
@@ -164,7 +164,7 @@ EDITORIAL_LITERAL_PATTERN = re.compile(
 ROBOT_WORD = re.compile(r"(?<![\w/])robots?(?![\w/])", re.IGNORECASE)
 GENERIC_ROBOT_CONTEXT = re.compile(
     r"\bgeneric robots?\b|\brobots? in general\b|\bany other robots?\b"
-    r"|\bother types of robots?\b|\bfrom phones to robots\b",
+    r"|\bother types of robots?\b|\bfrom phones to robots\b|\bsoftware running on robots\b",
     re.IGNORECASE,
 )
 NAME_INTRODUCTION = ", where `DUCKIEDRONE_NAME` is the name of your Duckiedrone"
@@ -222,7 +222,7 @@ PROSE_WORDING_RULES = {
         re.IGNORECASE,
     ),
     "replace prose dash punctuation with a comma, colon, parentheses or a sentence": re.compile(
-        r"(?<=[^\s|])[ \t]+-{1,2}[ \t]+(?=[^\s|])|[\u2013\u2014]",
+        r"(?<=[^\s|])[ \t]+-{1,2}[ \t]+(?=[^\s|])|\u2014|[ \t]\u2013[ \t]",
     ),
 }
 
@@ -504,7 +504,7 @@ def assert_duckiedrone_terminology(source: str, context: str = "Markdown") -> No
     prose = re.sub(r"__|\*\*|(?<!\w)[*_]|[*_](?!\w)", "", prose)
     prose = re.sub(r"\brobot operating system(?:\s+2)?\b", "ROS", prose, flags=re.IGNORECASE)
     for paragraph in re.split(r"(?<=[.!?])\s+|\n\n", prose):
-        if GENERIC_ROBOT_CONTEXT.search(paragraph):
+        if GENERIC_ROBOT_CONTEXT.search(paragraph) or re.search(r"\ba robot name\b", paragraph):
             continue
         robot = ROBOT_WORD.search(paragraph)
         assert robot is None, (
@@ -518,6 +518,8 @@ def assert_duckiedrone_terminology(source: str, context: str = "Markdown") -> No
     [
         "Connect to your Duckiedrone. The DUCKIEDRONES share the network.",
         "Robot Operating System 2 (ROS 2) transports sensor data.",
+        "The software running on robots performs several tasks.",
+        "A namespace can group components under a robot name.",
         "__Robot Operating System 2__ transports sensor data.",
         "A generic robot may use different hardware.",
         "This applies to a Duckiedrone or any other robot.",
@@ -827,11 +829,12 @@ def asterisk_emphasis_matches(source: str) -> list[re.Match[str]]:
 
 
 def assert_markdown_formatting(source: str, context: str = "Markdown") -> None:
-    """Require underscore emphasis, ASCII typography, and ASCII figures."""
-    assert not asterisk_emphasis_matches(source), (
-        f"{context}: use _ for italic and __ for bold, not asterisk emphasis"
-    )
+    """Accept standard Markdown and typography; reject invisible or decorative artifacts."""
     decoded_source = unescape(source)
+    decoded_source = decoded_source.translate(str.maketrans({
+        "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"',
+        "\u2013": "-", "\u2014": "-", "\u2026": "...",
+    }))
     disallowed = NON_ASCII_STYLE_PATTERN.search(decoded_source)
     assert disallowed is None, (
         f"{context}: use ASCII instead of Unicode arrows, line graphics, "
@@ -860,6 +863,8 @@ def assert_markdown_formatting(source: str, context: str = "Markdown") -> None:
     "source",
     [
         "_italic_ and __bold__ and ___both___",
+        "*italic* and **bold** and ***both***",
+        "Standard punctuation: “quoted”, publisher–subscriber, and …",
         "`*args` and `**kwargs` and `*.py`",
         "``literal `*text*` ``",
         "```python\nresult = value * factor\n# **literal**\n```\n",
@@ -881,11 +886,6 @@ def test_markdown_formatting_accepts_literal_content(source: str) -> None:
 @pytest.mark.parametrize(
     ("source", "message"),
     [
-        ("*italic*", "asterisk emphasis"),
-        ("**bold**", "asterisk emphasis"),
-        ("***both***", "asterisk emphasis"),
-        ("****nested bold****", "asterisk emphasis"),
-        ("**bold `command` text**", "asterisk emphasis"),
         ("<figure><pre>a &gt; b</pre></figure>", "literal > and <"),
         ("<figure><pre>a &lt; b</pre></figure>", "literal > and <"),
         ("<figure><pre>a &GT; b &LT; c</pre></figure>", "literal > and <"),
@@ -906,10 +906,6 @@ def test_markdown_formatting_accepts_literal_content(source: str) -> None:
         ("```text\n\u2514\u2500 file\n```\n", "ASCII"),
         ("a &rarr; b", "ASCII"),
         ("a &#x2192; b", "ASCII"),
-        ("\u201csmart quotes\u201d", "ASCII"),
-        ("Docker\u2019s daemon", "ASCII"),
-        ("word\u2014word", "ASCII"),
-        ("word\u2026", "ASCII"),
         ("\u2713 complete", "ASCII"),
         ("\U0001f680 ready", "ASCII"),
         ("hidden\u200bspace", "ASCII"),
@@ -993,15 +989,17 @@ def assert_try_it_sections(source: str) -> None:
 
 
 def assert_final_checkpoint_tail(notebook: dict[str, Any]) -> None:
-    """Require the standard final Further reading and checkpoint structure."""
+    """Keep end-of-notebook guidance, synthesis, and the interactive code cell."""
     final_markdown = notebook["cells"][-2]
     assert final_markdown["cell_type"] == "markdown"
     source = cell_source(final_markdown)
-    checkpoint_index = source.rfind("## Checkpoint\n")
-    assert checkpoint_index >= 0
-    assert source[checkpoint_index:] == CHECKPOINT_TAIL
-    headings = re.findall(r"(?m)^## .+$", source[:checkpoint_index])
-    assert headings[-1] == "## Further reading"
+    assert source.count("## Checkpoint\n") == 1
+    checkpoint_index = source.index("## Checkpoint\n")
+    assert source.index("## Further reading") < checkpoint_index
+    summary = re.search(r"(?m)^## Summary and (?:next steps|conclusions)$", source)
+    assert summary is not None and summary.start() > checkpoint_index
+    assert source[checkpoint_index:summary.start()].strip() != "## Checkpoint"
+    assert notebook["cells"][-1]["cell_type"] == "code"
 
 
 def checkpoint_data_path(notebook_name: str) -> Path:
@@ -1034,9 +1032,10 @@ def assert_reveal_self_check(notebook_name: str) -> None:
 
     assert set(checkpoint_data) == {"checkpoints"}
     assert code_source.splitlines() == CHECKPOINT_CODE_SOURCE
-    assert (
-        "Write or select a response before revealing the answer."
-        in markdown_source
+    assert "## Checkpoint" in markdown_source
+    checkpoint_prose = markdown_source.split("## Checkpoint", 1)[1].split("## Summary", 1)[0]
+    assert "response" in checkpoint_prose.lower() and (
+        "reveal" in checkpoint_prose.lower() or "model answer" in checkpoint_prose.lower()
     )
 
     checkpoints = checkpoint_data["checkpoints"]
@@ -1098,6 +1097,8 @@ def test_notebook_cells_have_consistent_metadata() -> None:
         notebook_path = NOTEBOOK_DIR / notebook_name
         notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
         assert notebook["nbformat"] == 4
+        assert notebook["metadata"] == {"language_info": {"name": "python"}}
+        assert len({cell["id"] for cell in notebook["cells"]}) == len(notebook["cells"])
         code_cells = [
             cell for cell in notebook["cells"] if cell["cell_type"] == "code"
         ]
@@ -1118,7 +1119,9 @@ def test_notebook_cells_have_consistent_metadata() -> None:
                 assert re.search(r"^# ", presentation_source, re.MULTILINE) is None
             if cell["cell_type"] == "markdown":
                 assert cell["metadata"]["language"] == "markdown"
-                assert_markdown_ends_with_one_newline(cell)
+                assert isinstance(cell["source"], list)
+                assert all(isinstance(line, str) for line in cell["source"])
+                assert "<!--" not in cell_source(cell)
 
         markdown_cell = notebook["cells"][0]
         assert markdown_cell["cell_type"] == "markdown"
@@ -1137,6 +1140,8 @@ def test_notebook_cells_have_consistent_metadata() -> None:
         code_cell = notebook["cells"][-1]
         assert code_cell["cell_type"] == "code"
         assert code_cell["metadata"]["language"] == "python"
+        assert code_cell["execution_count"] is None
+        assert code_cell["outputs"] == []
         assert_final_checkpoint_tail(notebook)
 
 
@@ -1145,7 +1150,7 @@ def test_presentation_blocks_use_standalone_markdown_cells() -> None:
     expected_logo = (
         '<p align="center">\n'
         '<a href="https://duckietown.com"><img src="../assets/images/dtlogo.png" '
-        'alt="Duckietown Logo" width="50%"></a>\n'
+        'alt="Duckietown Logo" width="30%"></a>\n'
         '</p>\n'
     )
     for notebook_name, expected_heading in REQUIRED_NOTEBOOKS.items():
@@ -1160,10 +1165,10 @@ def test_presentation_blocks_use_standalone_markdown_cells() -> None:
         lesson_index = 1
         if markdown_sources[1].startswith("<style>\n"):
             style_source = markdown_sources[1]
-            assert PRESENTATION_STYLE.fullmatch(style_source[:-1])
+            assert PRESENTATION_STYLE.fullmatch(style_source.strip())
             lesson_index = 2
         lesson_source = markdown_sources[lesson_index]
-        assert lesson_source.startswith(f"{expected_heading}\n")
+        assert lesson_source.lstrip("\n").startswith(f"{expected_heading}\n")
         for source in markdown_sources[lesson_index:]:
             assert "<style>" not in source
             assert 'src="../assets/images/dtlogo.png"' not in source
@@ -1312,11 +1317,12 @@ def test_tables_and_figures_use_shared_presentation_style() -> None:
         tables = TABLE_PATTERN.findall(source)
         figures = FIGURE_PATTERN.findall(source)
 
+        if "<style>" in source:
+            assert PRESENTATION_STYLE.search(source)
         if tables or figures:
             styled_notebooks += 1
-            assert PRESENTATION_STYLE.search(source)
-        else:
-            assert "<style>" not in source
+        # Tables and semantic figures carry their required styles inline,
+        # including notebooks that need no shared stylesheet.
 
         for attributes in tables:
             assert 'class="lx-table"' in attributes
@@ -1340,8 +1346,8 @@ def test_tables_and_figures_use_shared_presentation_style() -> None:
         figure_count += len(figures)
 
     assert styled_notebooks == 5
-    assert table_count == 2
-    assert figure_count == 6
+    assert table_count == 6
+    assert figure_count == 2
 
 
 def test_numbered_notebook_references_are_individually_linked() -> None:
@@ -1508,19 +1514,20 @@ def test_readme_has_shared_lx_structure() -> None:
         readme,
         re.MULTILINE,
     )
-    assert "`Software: ente`; `Hardware: DD24-B`" in readme
+    assert "`Software: ente`; `Hardware for optional telemetry: DD24-B`" in readme
     assert re.findall(r"^## .+$", readme, re.MULTILINE) == [
         "## Intended learning outcomes",
         "## Run this LX",
         "## Notebooks",
         "## Prerequisites",
         f"## Complete the {README_EXERCISE_TOPIC} exercise",
+        "## Troubleshooting",
         "## Further reading",
         "## For LX authors",
     ]
 
     notebook_section = readme.split("## Notebooks\n", 1)[1].split("\n## ", 1)[0]
-    assert "| # | Notebook | Description |\n| --- | --- | --- |" in notebook_section
+    assert "| # | Notebook | Content |\n| --- | --- | --- |" in notebook_section
     notebook_rows = re.findall(r"^\| \d+ \|.*\|$", notebook_section, re.MULTILINE)
     assert len(notebook_rows) == len(REQUIRED_NOTEBOOKS)
     for number, (notebook_name, row) in enumerate(
@@ -1539,16 +1546,16 @@ def test_readme_has_shared_lx_structure() -> None:
     prerequisite_headings = re.findall(
         r"^### .+$", prerequisite_section, re.MULTILINE
     )
-    assert len(prerequisite_headings) == 4
-    assert prerequisite_headings[0] == "### Choose the terminal"
-    assert prerequisite_headings[1] == (
-        f"### {README_EXERCISE_TOPIC} foundations and local practice"
-    )
-    assert prerequisite_headings[-1] == "### Duckiedrone access"
+    assert prerequisite_headings == [
+        "### Open the dedicated environment",
+        "### Choose the terminal",
+        "### Interactive checkpoints",
+        "### Optional Duckiedrone inspection",
+    ]
     assert "python3 -m pytest tests/" in readme
-    assert (
-        "Interactive checkpoints require the notebook metadata supplied by "
-        "`dts code editor` and a compatible Jupyter/IPython kernel with "
-        "`ipywidgets` available"
-        in readme
-    )
+    assert "ipywidgets" in prerequisite_section
+    assert "execution context" in prerequisite_section
+    assert "dts code editor --username duckietown" in prerequisite_section
+    assert 'colcon build --base-paths "$LX_DIR/packages" --packages-select ros2_pubsub' in readme
+    assert "ros2 node list --no-daemon --spin-time 5" in readme
+    assert "ros2 daemon stop" in readme

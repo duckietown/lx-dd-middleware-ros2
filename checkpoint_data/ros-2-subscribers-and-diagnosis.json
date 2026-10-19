@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "subscriber-initial-constants",
-      "question": "Which initial subscriber constants must match the publisher for the first run?",
-      "model_answer": "The subscriber needs the same `String` message type and `chatter` topic. Its node name can differ from the publisher's node name.",
+      "question": "Which subscriber settings connect it to the publisher in this activity, and why can its node name differ?",
+      "model_answer": "The String message type and chatter topic match the publisher's interface. The node name identifies the subscriber itself, so listener can receive from talker without sharing its node name.",
       "evidence": [
         {
           "label": "Read and run the subscriber",
@@ -12,9 +12,20 @@
       ]
     },
     {
+      "id": "subscription-without-publisher",
+      "question": "Why can /chatter remain visible after its publisher stops?",
+      "model_answer": "The running listener still has a subscription to /chatter. A topic can appear in the graph through that endpoint even when its publisher count is zero.",
+      "evidence": [
+        {
+          "label": "Diagnose missing messages",
+          "anchor": "#diagnose-missing-messages"
+        }
+      ]
+    },
+    {
       "id": "echo-diagnostic-meaning",
-      "question": "How does a message printed by `ros2 topic echo --once /chatter` narrow the diagnosis of a quiet listener?",
-      "model_answer": "It confirms receipt of the publisher's data by the observation terminal's subscription. Focus next on the listener's terminal environment, subscription settings, and receive callback.",
+      "question": "A temporary echo observer receives the expected text while the listener remains quiet. How does this narrow the investigation?",
+      "model_answer": "Delivery to the observation terminal's subscription has worked. The listener's discovery context, resolved topic, message type, QoS settings, executor, and callback are the next places to investigate.",
       "evidence": [
         {
           "label": "Diagnose missing messages",

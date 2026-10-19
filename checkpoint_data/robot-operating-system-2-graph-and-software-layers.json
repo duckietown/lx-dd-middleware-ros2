@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "ros2-graph-purpose",
-      "question": "What is the purpose of organizing a robot as a ROS 2 graph?",
-      "model_answer": "The graph divides an application into focused nodes that exchange typed data through defined interfaces, making components easier to understand, test, and replace independently.",
+      "question": "The pose-estimation algorithm is replaced. What must remain compatible for the existing controller to keep using its output, and why?",
+      "model_answer": "The controller still needs the expected topic, message type, and meaning of the pose data, including units and coordinate frame. Keeping that interface compatible allows the controller to consume the estimates without depending on the estimator's internal algorithm.",
       "evidence": [
         {
           "label": "The ROS 2 graph",
@@ -13,8 +13,8 @@
     },
     {
       "id": "ros2-and-linux",
-      "question": "Is ROS 2 an operating system, and what does it depend on?",
-      "model_answer": "ROS 2 is a software framework that runs on Linux. It provides shared communication conventions for programs rather than replacing the operating system.",
+      "question": "In a Python publisher running on Linux, which responsibilities belong to the application code, ROS 2, and the operating system?",
+      "model_answer": "The application decides what data to publish and when. ROS 2 provides the node and publisher interfaces and the underlying discovery and message-exchange facilities. Linux supplies the process, device, and networking facilities on which the software runs.",
       "evidence": [
         {
           "label": "Software layers",
