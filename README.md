@@ -50,6 +50,10 @@ Complete the Duckietown Manual's [Initial Setup](https://docs.duckietown.com/ent
 
 ### Open the dedicated environment
 
+The local exercises can run in the code editor's integrated terminals or in a runtime container opened from the base station or Duckietown Workspace. Use the same method for all terminals in an activity so the processes share one container.
+
+__Option 1: Code editor terminals__
+
 From the LX checkout in a base-station or Workspace terminal:
 
 ```bash
@@ -60,16 +64,34 @@ The exercise recipe supplies the ROS 2 Jazzy editor environment and prepares the
 
 Once the editor opens, select __Terminal > New Terminal__ for local `ros2` and `colcon` commands. Additional terminals opened through that menu share the exercise container.
 
+__Option 2: Base-station or Workspace terminals__
+
+From the directory containing the LX checkout, build the exercise image and open its runtime shell:
+
+```bash
+cd lx-dd-middleware-ros2
+dts code build --local --username duckietown
+dts devel run --username duckietown --cmd bash
+```
+
+Once startup completes, the prompt belongs to the exercise container, where the notebook's ROS 2 commands can run. For another shell in the same running runtime container, open a second base-station or Workspace terminal, change to the same LX directory, and run:
+
+```bash
+dts devel run attach
+```
+
+Repeat the attachment step when an activity needs a third terminal. In each container shell, follow the notebook's environment-sourcing instructions; an attached shell does not inherit changes made in another shell. The code editor can still be used to read the notebooks and run their interactive checkpoints.
+
 ### Choose the terminal
 
 | Task | Execution environment |
 | --- | --- |
 | Start the editor | Base-station or Duckietown Workspace terminal |
-| Build packages and run local ROS 2 experiments | Integrated terminals in the dedicated editor |
+| Build packages and run local ROS 2 experiments | Integrated editor terminals, or shells attached to the same exercise runtime container |
 | Connect to a Duckiedrone and list its containers | Base-station connection followed by the Duckiedrone shell |
 | Inspect Duckiedrone ROS 2 telemetry | The `ros2-mavros` shell entered in [Notebook 8](./notebooks/8-inspect-a-duckiedrone-ros-2-graph.ipynb) |
 
-The editor supplies `ros2`, `colcon`, and `COLCON_WS=/code`. [Notebook 7](./notebooks/7-inspect-a-local-ros-2-graph.ipynb) and the subscriber and remapping activities use three terminals. Each notebook identifies which process runs in each terminal and when it should be stopped.
+The exercise environment supplies `ros2`, `colcon`, and `COLCON_WS=/code`. [Notebook 7](./notebooks/7-inspect-a-local-ros-2-graph.ipynb) and the subscriber and remapping activities use three terminals. Each notebook identifies which process runs in each terminal and when it should be stopped.
 
 ### Interactive checkpoints
 
@@ -85,7 +107,7 @@ The helper uses the notebook path included in the editor's execution context to 
 
 [Notebook 5](./notebooks/5-ros-2-workspaces-and-packages.ipynb) introduces the supplied package, and [Notebook 6](./notebooks/6-build-and-discover-a-ros-2-package.ipynb) explains the first build. The following is a reference for rebuilding after saved source changes.
 
-Starting in the LX checkout inside the editor:
+Starting in the LX checkout inside the chosen exercise container:
 
 ```bash
 source /opt/ros/${ROS2_DISTRO}/setup.bash
