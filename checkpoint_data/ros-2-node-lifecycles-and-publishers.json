@@ -1,9 +1,20 @@
 {
   "checkpoints": [
     {
+      "id": "string-message-field",
+      "question": "Which assignment determines the text received in each String message?",
+      "model_answer": "message.data = MESSAGE_CONTENT places the configured text in the message's data field. The later publish call sends that message through the publisher.",
+      "evidence": [
+        {
+          "label": "What triggers a publication?",
+          "anchor": "#what-triggers-a-publication"
+        }
+      ]
+    },
+    {
       "id": "timer-replaces-rate",
-      "question": "What replaces a `rospy.Rate` loop in this ROS 2 publisher?",
-      "model_answer": "`create_timer()` schedules periodic callbacks, and `rclpy.spin(node)` keeps the process ready to run those callbacks.",
+      "question": "The constructor creates a timer, but what keeps the program processing its callbacks?",
+      "model_answer": "rclpy.spin(node) lets the executor wait for ready work and invoke callbacks. The timer determines when its callback becomes ready, and spinning enables that work to be processed.",
       "evidence": [
         {
           "label": "Understand the node lifecycle",
@@ -12,13 +23,13 @@
       ]
     },
     {
-      "id": "string-message-field",
-      "question": "Which field carries text in a `std_msgs/msg/String` message?",
-      "model_answer": "The message's `data` field contains the text.",
+      "id": "publisher-rate-change",
+      "question": "PUBLISH_RATE_HZ changes from 1.0 to 2.0. What timer period should the constructor calculate, and what arrival rate should the observer approximately measure?",
+      "model_answer": "The timer period changes from one second to half a second. After rebuilding and restarting, the observer should receive approximately two messages per second, with normal scheduling and measurement variation.",
       "evidence": [
         {
-          "label": "Read the publisher starter",
-          "anchor": "#read-the-publisher-starter"
+          "label": "Change the publication rate",
+          "anchor": "#change-the-publication-rate"
         }
       ]
     }

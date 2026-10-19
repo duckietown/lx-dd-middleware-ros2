@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "device-inspection-shells",
-      "question": "Which shell should run `docker ps` to list Duckiedrone containers, and which should run `ros2 topic list -t` for the MAVROS graph?",
-      "model_answer": "Run `docker ps` in the Duckiedrone shell to find its running services. Run the ROS 2 topic command inside the `ros2-mavros` service-container shell so it uses the configured middleware and domain.",
+      "question": "Which shell should run docker ps, and which should run ros2 topic list -t during this activity?",
+      "model_answer": "docker ps runs in the connected Duckiedrone shell to identify its containers. ros2 topic list -t runs inside the ros2-mavros container, where the inspection tools use the configured ROS 2 environment.",
       "evidence": [
         {
           "label": "Enter the Duckiedrone shell",
@@ -12,13 +12,24 @@
       ]
     },
     {
-      "id": "mavros-topic-prefix",
-      "question": "Why should you inspect `ros2 topic list -t` instead of adding the Duckiedrone's name to every topic path?",
-      "model_answer": "Topic names depend on their publishers and namespaces. MAVROS uses paths such as `/mavros/state`, while other bridges can include the Duckiedrone's name. The running stack and enabled plugins determine which topics are available.",
+      "id": "retained-state",
+      "question": "Why does receiving one message from a TRANSIENT_LOCAL state publisher leave a question about freshness?",
+      "model_answer": "The publisher can retain samples for compatible late-joining subscriptions, so the received message may have been produced before the observer joined. Its timestamp and subsequent updates provide further evidence about freshness and continued publication.",
       "evidence": [
         {
-          "label": "Read the graph",
-          "anchor": "#read-the-graph"
+          "label": "Identify the state publisher",
+          "anchor": "#identify-the-state-publisher"
+        }
+      ]
+    },
+    {
+      "id": "bridge-state-delivery",
+      "question": "A state message arrives with connected: false. Which part of the data path has been demonstrated, and which connection needs investigation?",
+      "model_answer": "The observer received a message through the ROS 2 topic, demonstrating delivery to that observer. The sample reports that MAVROS lacks its flight-controller connection, so that upstream connection needs investigation.",
+      "evidence": [
+        {
+          "label": "Receive a state message",
+          "anchor": "#receive-a-state-message"
         }
       ]
     }
