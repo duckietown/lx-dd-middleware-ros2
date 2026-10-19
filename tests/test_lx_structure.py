@@ -15,6 +15,7 @@ import re
 from collections.abc import Callable
 from html import unescape
 from importlib import import_module
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -60,11 +61,12 @@ REQUIRED_NOTEBOOKS = {
     "6-build-and-discover-a-ros-2-package.ipynb": "# Build and Discover a ROS 2 Package",
     "7-inspect-a-local-ros-2-graph.ipynb": "# Inspect a Local ROS 2 Graph",
     "8-inspect-a-duckiedrone-ros-2-graph.ipynb": "# Inspect a Duckiedrone ROS 2 Graph",
-    "9-ros-2-node-lifecycles-and-publishers.ipynb": "# ROS 2 Node Lifecycles and Anatomy of a Publisher",
+    "9-ros-2-node-lifecycles-and-publishers.ipynb": "# ROS 2 Node Lifecycles and Publishers",
     "10-ros-2-subscribers-and-diagnosis.ipynb": "# ROS 2 Subscribers and Diagnosis",
     "11-ros-2-names-and-remapping.ipynb": "# ROS 2 Names and Remapping",
 }
 INTERACTIVE_CHECKPOINT_NOTEBOOKS = set(REQUIRED_NOTEBOOKS)
+LIST_ITEM = re.compile(r"^[ \t]*(?:[-*+] |\d+[.)] )")
 TRY_IT_HEADING_PATTERN = re.compile(r"^### Try it(?:[: ].*)?$", re.MULTILINE)
 SECTION_HEADING_PATTERN = re.compile(r"^#{2,3} .+$", re.MULTILINE)
 CHECKPOINT_CODE_SOURCE = [
@@ -164,7 +166,7 @@ EDITORIAL_LITERAL_PATTERN = re.compile(
 ROBOT_WORD = re.compile(r"(?<![\w/])robots?(?![\w/])", re.IGNORECASE)
 GENERIC_ROBOT_CONTEXT = re.compile(
     r"\bgeneric robots?\b|\brobots? in general\b|\bany other robots?\b"
-    r"|\bother types of robots?\b|\bfrom phones to robots\b|\bsoftware running on robots\b",
+    r"|\bother types of robots?\b|\bfrom phones to robots\b",
     re.IGNORECASE,
 )
 NAME_INTRODUCTION = ", where `DUCKIEDRONE_NAME` is the name of your Duckiedrone"
@@ -222,7 +224,7 @@ PROSE_WORDING_RULES = {
         re.IGNORECASE,
     ),
     "replace prose dash punctuation with a comma, colon, parentheses or a sentence": re.compile(
-        r"(?<=[^\s|])[ \t]+-{1,2}[ \t]+(?=[^\s|])|\u2014|[ \t]\u2013[ \t]",
+        r"(?<=[^\s|])[ \t]+-{1,2}[ \t]+(?=[^\s|])|[\u2013\u2014]",
     ),
 }
 
@@ -430,8 +432,17 @@ def assert_linked_acronym_style(source: str, context: str = "Markdown") -> None:
             continue
         suffix = re.match(r"[ \t]*(?:\n[ \t]*)?\(([^()\n]+)\)", source[link.end():])
         if suffix is None:
-            continue
-        acronym = concept_label(suffix[1])
+            label = link.group("label") or link.group("html")
+            acronym = concept_label(label)
+            aliases = CONCEPT_ALIASES.get(acronym, ())
+            if not source[link.end():].startswith(")") or not any(
+                alias != acronym
+                and re.search(re.escape(alias) + r"\s+\($", source[:link.start()])
+                for alias in aliases
+            ):
+                continue
+        else:
+            acronym = concept_label(suffix[1])
         if re.fullmatch(r"[A-Za-z][A-Za-z0-9]*(?: (?:\d+|Code))?", acronym) is None:
             continue
         if re.search(r"[A-Z].*[A-Z]", acronym) is None:
@@ -464,6 +475,8 @@ def test_linked_acronym_style_accepts_complete_labels_and_literals(source: str) 
         "[Micro Air Vehicle Link](https://mavlink.io/) (MAVLink) carries telemetry.",
         "[Visual Studio Code](https://code.visualstudio.com/) (VS Code) is an editor.",
         "[Multicast DNS](https://www.rfc-editor.org/rfc/rfc6762)\n(mDNS) resolves names.",
+        "Robot Operating System 2 ([ROS 2](https://www.ros.org/)) uses topics.",
+        "Duckietown Postal Service ([DTPS](https://dtps.org/)) carries messages.",
     ],
 )
 def test_linked_acronym_style_rejects_split_definitions(source: str) -> None:
@@ -479,7 +492,80 @@ def test_notebook_linked_acronyms_include_the_acronym() -> None:
                 assert_linked_acronym_style(cell_source(cell), f"{path.name}, Cell {number}")
 
 
-@pytest.mark.parametrize("rule", [assert_duckiedrone_name_explained_once, assert_explanatory_concept_links])
+def assert_acronym_definitions(documents: list[tuple[str, str]]) -> None:
+    """Expand lesson acronyms once at their first use across the notebook order."""
+    expansions = {
+        "LX": "learning experience",
+        "ROS 2": "Robot Operating System 2",
+        "RMW": "ROS Middleware",
+        "ToF": "time of flight",
+        "DTPS": "Duckietown Postal Service",
+        "IMU": "inertial measurement unit",
+        "MAVLink": "Micro Air Vehicle Link",
+        "QoS": "quality of service",
+        "DDS": "Data Distribution Service",
+        "CLI": "command-line interface",
+        "VS Code": "Visual Studio Code",
+    }
+    seen = set()
+    for context, source in documents:
+        prose = editorial_prose(source, exclude_references=True)
+        for acronym, expansion in expansions.items():
+            first_use = re.search(r"\b" + acronym + r"\b", prose)
+            if first_use is None:
+                continue
+            expansion_pattern = re.escape(expansion).replace(r"\ ", r"[-\s]+")
+            definitions = list(re.finditer(
+                expansion_pattern + r"\s+\(" + acronym + r"\)",
+                prose,
+                re.IGNORECASE,
+            ))
+            if acronym in seen:
+                assert not definitions, f"{context}: repeated {acronym} expansion"
+                continue
+            assert len(definitions) == 1, f"{context}: expand {acronym} once at first use"
+            definition = definitions[0]
+            assert definition.start() <= first_use.start() < definition.end(), (
+                f"{context}: expand {acronym} at first use"
+            )
+            seen.add(acronym)
+
+
+@pytest.mark.parametrize(
+    "documents",
+    [
+        [],
+        [("1", "Data Distribution Service (DDS) handles discovery."), ("2", "DDS participants communicate.")],
+        [("1", "The command-line interface (CLI) inspects the graph."), ("2", "The CLI queries nodes.")],
+        [("1", "This learning experience (LX) covers communication.")],
+        [("1", "The time-of-flight (ToF) sensor measures distance.")],
+        [("1", "[Micro Air Vehicle Link (MAVLink)](https://mavlink.io/) carries telemetry.")],
+        [("1", "Visual Studio Code (VS Code) displays source files.")],
+        [("1", "```shell\nDDS CLI\n```\n\n## Further reading\n\nDDS and CLI references.")],
+    ],
+)
+def test_acronym_definitions_accept_first_use_and_literals(documents: list[tuple[str, str]]) -> None:
+    assert_acronym_definitions(documents)
+
+
+@pytest.mark.parametrize(
+    "documents",
+    [
+        [("1", "DDS handles discovery.")],
+        [("1", "The CLI inspects the graph.")],
+        [("1", "This LX covers communication.")],
+        [("1", "MAVLink carries telemetry.")],
+        [("1", "VS Code displays source files.")],
+        [("1", "DDS uses Data Distribution Service (DDS).")],
+        [("1", "The command-line interface (CLI) runs."), ("2", "The command-line interface (CLI) runs again.")],
+    ],
+)
+def test_acronym_definitions_reject_missing_late_and_repeated(documents: list[tuple[str, str]]) -> None:
+    with pytest.raises(AssertionError, match=r"expand|expansion"):
+        assert_acronym_definitions(documents)
+
+
+@pytest.mark.parametrize("rule", [assert_duckiedrone_name_explained_once, assert_explanatory_concept_links, assert_acronym_definitions])
 def test_notebook_explanations_follow_reading_order(rule: Callable[[list[tuple[str, str]]], None]) -> None:
     documents = []
     paths = sorted(NOTEBOOK_DIR.glob("*.ipynb"), key=lambda path: int(path.name.partition("-")[0]))
@@ -504,7 +590,7 @@ def assert_duckiedrone_terminology(source: str, context: str = "Markdown") -> No
     prose = re.sub(r"__|\*\*|(?<!\w)[*_]|[*_](?!\w)", "", prose)
     prose = re.sub(r"\brobot operating system(?:\s+2)?\b", "ROS", prose, flags=re.IGNORECASE)
     for paragraph in re.split(r"(?<=[.!?])\s+|\n\n", prose):
-        if GENERIC_ROBOT_CONTEXT.search(paragraph) or re.search(r"\ba robot name\b", paragraph):
+        if GENERIC_ROBOT_CONTEXT.search(paragraph):
             continue
         robot = ROBOT_WORD.search(paragraph)
         assert robot is None, (
@@ -518,8 +604,6 @@ def assert_duckiedrone_terminology(source: str, context: str = "Markdown") -> No
     [
         "Connect to your Duckiedrone. The DUCKIEDRONES share the network.",
         "Robot Operating System 2 (ROS 2) transports sensor data.",
-        "The software running on robots performs several tasks.",
-        "A namespace can group components under a robot name.",
         "__Robot Operating System 2__ transports sensor data.",
         "A generic robot may use different hardware.",
         "This applies to a Duckiedrone or any other robot.",
@@ -829,12 +913,11 @@ def asterisk_emphasis_matches(source: str) -> list[re.Match[str]]:
 
 
 def assert_markdown_formatting(source: str, context: str = "Markdown") -> None:
-    """Accept standard Markdown and typography; reject invisible or decorative artifacts."""
+    """Require underscore emphasis, ASCII typography, and ASCII figures."""
+    assert not asterisk_emphasis_matches(source), (
+        f"{context}: use _ for italic and __ for bold, not asterisk emphasis"
+    )
     decoded_source = unescape(source)
-    decoded_source = decoded_source.translate(str.maketrans({
-        "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"',
-        "\u2013": "-", "\u2014": "-", "\u2026": "...",
-    }))
     disallowed = NON_ASCII_STYLE_PATTERN.search(decoded_source)
     assert disallowed is None, (
         f"{context}: use ASCII instead of Unicode arrows, line graphics, "
@@ -863,8 +946,6 @@ def assert_markdown_formatting(source: str, context: str = "Markdown") -> None:
     "source",
     [
         "_italic_ and __bold__ and ___both___",
-        "*italic* and **bold** and ***both***",
-        "Standard punctuation: “quoted”, publisher–subscriber, and …",
         "`*args` and `**kwargs` and `*.py`",
         "``literal `*text*` ``",
         "```python\nresult = value * factor\n# **literal**\n```\n",
@@ -886,6 +967,11 @@ def test_markdown_formatting_accepts_literal_content(source: str) -> None:
 @pytest.mark.parametrize(
     ("source", "message"),
     [
+        ("*italic*", "asterisk emphasis"),
+        ("**bold**", "asterisk emphasis"),
+        ("***both***", "asterisk emphasis"),
+        ("****nested bold****", "asterisk emphasis"),
+        ("**bold `command` text**", "asterisk emphasis"),
         ("<figure><pre>a &gt; b</pre></figure>", "literal > and <"),
         ("<figure><pre>a &lt; b</pre></figure>", "literal > and <"),
         ("<figure><pre>a &GT; b &LT; c</pre></figure>", "literal > and <"),
@@ -906,6 +992,10 @@ def test_markdown_formatting_accepts_literal_content(source: str) -> None:
         ("```text\n\u2514\u2500 file\n```\n", "ASCII"),
         ("a &rarr; b", "ASCII"),
         ("a &#x2192; b", "ASCII"),
+        ("\u201csmart quotes\u201d", "ASCII"),
+        ("Docker\u2019s daemon", "ASCII"),
+        ("word\u2014word", "ASCII"),
+        ("word\u2026", "ASCII"),
         ("\u2713 complete", "ASCII"),
         ("\U0001f680 ready", "ASCII"),
         ("hidden\u200bspace", "ASCII"),
@@ -989,16 +1079,15 @@ def assert_try_it_sections(source: str) -> None:
 
 
 def assert_final_checkpoint_tail(notebook: dict[str, Any]) -> None:
-    """Keep end-of-notebook guidance, synthesis, and the interactive code cell."""
+    """Require the standard final Further reading and checkpoint structure."""
     final_markdown = notebook["cells"][-2]
     assert final_markdown["cell_type"] == "markdown"
     source = cell_source(final_markdown)
     assert source.count("## Checkpoint\n") == 1
     checkpoint_index = source.index("## Checkpoint\n")
-    assert source.index("## Further reading") < checkpoint_index
-    summary = re.search(r"(?m)^## Summary and (?:next steps|conclusions)$", source)
-    assert summary is not None and summary.start() > checkpoint_index
-    assert source[checkpoint_index:summary.start()].strip() != "## Checkpoint"
+    assert source[checkpoint_index:] == CHECKPOINT_TAIL
+    headings = re.findall(r"(?m)^## .+$", source[:checkpoint_index])
+    assert headings[-1] == "## Further reading"
     assert notebook["cells"][-1]["cell_type"] == "code"
 
 
@@ -1032,10 +1121,9 @@ def assert_reveal_self_check(notebook_name: str) -> None:
 
     assert set(checkpoint_data) == {"checkpoints"}
     assert code_source.splitlines() == CHECKPOINT_CODE_SOURCE
-    assert "## Checkpoint" in markdown_source
-    checkpoint_prose = markdown_source.split("## Checkpoint", 1)[1].split("## Summary", 1)[0]
-    assert "response" in checkpoint_prose.lower() and (
-        "reveal" in checkpoint_prose.lower() or "model answer" in checkpoint_prose.lower()
+    assert (
+        "Write or select a response before revealing the answer."
+        in markdown_source
     )
 
     checkpoints = checkpoint_data["checkpoints"]
@@ -1122,6 +1210,7 @@ def test_notebook_cells_have_consistent_metadata() -> None:
                 assert isinstance(cell["source"], list)
                 assert all(isinstance(line, str) for line in cell["source"])
                 assert "<!--" not in cell_source(cell)
+                assert_markdown_ends_with_one_newline(cell)
 
         markdown_cell = notebook["cells"][0]
         assert markdown_cell["cell_type"] == "markdown"
@@ -1135,6 +1224,13 @@ def test_notebook_cells_have_consistent_metadata() -> None:
             line for line in source.splitlines() if line.startswith("# ")
         ]
         assert markdown_headings[0] == expected_heading
+        for removed_heading in (
+            "## Intended Learning Outcomes",
+            "## Summary and next steps",
+            "## Summary and conclusions",
+            "## Thinking activities",
+        ):
+            assert removed_heading not in source
         assert_try_it_sections(source)
 
         code_cell = notebook["cells"][-1]
@@ -1145,12 +1241,12 @@ def test_notebook_cells_have_consistent_metadata() -> None:
         assert_final_checkpoint_tail(notebook)
 
 
-def test_presentation_blocks_use_standalone_markdown_cells() -> None:
-    """Keep logos and stylesheet definitions separate from lesson Markdown."""
+def test_presentation_styles_share_the_lesson_markdown_cell() -> None:
+    """Keep the logo separate and stylesheet rules local to their lesson."""
     expected_logo = (
         '<p align="center">\n'
         '<a href="https://duckietown.com"><img src="../assets/images/dtlogo.png" '
-        'alt="Duckietown Logo" width="30%"></a>\n'
+        'alt="Duckietown Logo" width="50%"></a>\n'
         '</p>\n'
     )
     for notebook_name, expected_heading in REQUIRED_NOTEBOOKS.items():
@@ -1162,14 +1258,15 @@ def test_presentation_blocks_use_standalone_markdown_cells() -> None:
             if cell["cell_type"] == "markdown"
         ]
         assert markdown_sources[0] == expected_logo
-        lesson_index = 1
-        if markdown_sources[1].startswith("<style>\n"):
-            style_source = markdown_sources[1]
-            assert PRESENTATION_STYLE.fullmatch(style_source.strip())
-            lesson_index = 2
-        lesson_source = markdown_sources[lesson_index]
-        assert lesson_source.lstrip("\n").startswith(f"{expected_heading}\n")
-        for source in markdown_sources[lesson_index:]:
+        lesson_source = markdown_sources[1]
+        if lesson_source.startswith("<style>\n"):
+            style_match = PRESENTATION_STYLE.match(lesson_source)
+            assert style_match is not None
+            lesson_source = lesson_source[style_match.end():]
+            assert lesson_source.startswith("\n\n")
+            lesson_source = lesson_source[2:]
+        assert lesson_source.startswith(f"{expected_heading}\n")
+        for source in [lesson_source, *markdown_sources[2:]]:
             assert "<style>" not in source
             assert 'src="../assets/images/dtlogo.png"' not in source
 
@@ -1306,7 +1403,7 @@ def test_notebook_media_introductions() -> None:
 
 
 def test_tables_and_figures_use_shared_presentation_style() -> None:
-    """Keep shared styling and cell-local alignment consistent across viewers."""
+    """Keep visual material on the shared, lesson-local presentation contract."""
     styled_notebooks = 0
     table_count = 0
     figure_count = 0
@@ -1317,41 +1414,177 @@ def test_tables_and_figures_use_shared_presentation_style() -> None:
         tables = TABLE_PATTERN.findall(source)
         figures = FIGURE_PATTERN.findall(source)
 
-        if "<style>" in source:
-            assert PRESENTATION_STYLE.search(source)
         if tables or figures:
             styled_notebooks += 1
-        # Tables and semantic figures carry their required styles inline,
-        # including notebooks that need no shared stylesheet.
+            lesson_source = cell_source(notebook["cells"][1])
+            assert PRESENTATION_STYLE.match(lesson_source)
+        else:
+            assert "<style>" not in source
 
         for attributes in tables:
             assert 'class="lx-table"' in attributes
-            assert 'style="margin:1.5em auto; text-align:left;"' in attributes
+            assert "style=" not in attributes
         for attributes in figures:
             assert 'class="lx-figure"' in attributes
-            assert 'style="margin:1.5em auto; text-align:center;"' in attributes
-        for tag, attributes in CAPTION_PATTERN.findall(source):
-            if tag == "caption":
-                expected_style = (
-                    "caption-side:top; font-size:0.9em; "
-                    "margin-bottom:0.6em; text-align:center;"
-                )
-            else:
-                expected_style = (
-                    "font-size:0.9em; margin-top:0.6em; text-align:center;"
-                )
-            assert f'style="{expected_style}"' in attributes
+            style_match = re.search(r'style="([^"]*)"', attributes)
+            if style_match:
+                assert re.fullmatch(r"width:\d+px;", style_match[1])
+        for _tag, attributes in CAPTION_PATTERN.findall(source):
+            assert "style=" not in attributes
+
+        for diagram in re.findall(r"<pre\b[^>]*>(.*?)</pre>", source, re.DOTALL):
+            diagram_lines = [line for line in diagram.splitlines() if line.strip()]
+            assert all(line.startswith("    ") for line in diagram_lines), notebook_path
+            assert re.search(r"`[^`\n]+`", diagram) is None, notebook_path
 
         table_count += len(tables)
         figure_count += len(figures)
 
-    assert styled_notebooks == 5
+    assert styled_notebooks == 6
     assert table_count == 6
-    assert figure_count == 2
+    assert figure_count == 5
+
+
+@pytest.mark.parametrize(
+    ("notebook_name", "figure_id"),
+    [
+        ("1-robot-operating-system-2-graph-and-software-layers.ipynb", "figure-1"),
+        ("1-robot-operating-system-2-graph-and-software-layers.ipynb", "figure-2"),
+        ("9-ros-2-node-lifecycles-and-publishers.ipynb", "figure-1"),
+    ],
+)
+def test_vertical_figure_connectors_use_shared_indentation(
+    notebook_name: str, figure_id: str,
+) -> None:
+    """Use the peer LXs' two-space step from labels to flow connectors."""
+    notebook_path = NOTEBOOK_DIR / notebook_name
+    notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+    source = notebook_markdown_source(notebook)
+    figure = next(
+        match[0] for match in MEDIA_PATTERN.finditer(source)
+        if f'id="{figure_id}"' in match[0]
+    )
+    element = ET.fromstring(figure)
+    diagram = element.find("pre")
+    assert diagram is not None and diagram.text
+    connector_lines = [
+        line for line in diagram.text.splitlines()
+        if line.lstrip().startswith("|") or line.strip() == "v"
+    ]
+    assert connector_lines
+    for line in connector_lines:
+        assert re.match(r" {6}\S", line), f"{notebook_name}: {figure_id}: {line!r}"
+
+
+@pytest.mark.parametrize(
+    ("notebook_name", "element_id", "caption_tag", "identifiers"),
+    [
+        ("4-ros-2-discovery-domains-and-names.ipynb", "table-1", "caption", ("/amelia/camera_node",)),
+        ("5-ros-2-workspaces-and-packages.ipynb", "figure-1", "figcaption", ("ros2_pubsub", "ament_python")),
+    ],
+)
+def test_media_captions_format_code_identifiers(
+    notebook_name: str, element_id: str, caption_tag: str, identifiers: tuple[str, ...],
+) -> None:
+    notebook_path = NOTEBOOK_DIR / notebook_name
+    notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+    source = notebook_markdown_source(notebook)
+    media = next(match[0] for match in MEDIA_PATTERN.finditer(source) if f'id="{element_id}"' in match[0])
+    element = ET.fromstring(media)
+    caption = element.find(caption_tag)
+    assert caption is not None
+    code_identifiers = {code.text for code in caption.findall("code")}
+    assert set(identifiers) <= code_identifiers
+
+
+def assert_markdown_list_spacing(source: str, context: str = "Markdown") -> None:
+    """Separate adjacent list items while preserving literal command output."""
+    in_fence = False
+    for line, next_line in pairwise(source.splitlines()):
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            assert not (LIST_ITEM.match(line) and LIST_ITEM.match(next_line)), (
+                f"{context}: separate list items with a blank line"
+            )
+
+
+@pytest.mark.parametrize("source", ["- One\n\n- Two\n", "1. One\n\n2. Two\n", "```shell\n- One\n- Two\n```\n"])
+def test_markdown_list_spacing_accepts_spaced_lists_and_literals(source: str) -> None:
+    assert_markdown_list_spacing(source)
+
+
+@pytest.mark.parametrize("source", ["- One\n- Two\n", "1. One\n2. Two\n"])
+def test_markdown_list_spacing_rejects_tight_lists(source: str) -> None:
+    with pytest.raises(AssertionError, match="separate list items"):
+        assert_markdown_list_spacing(source)
+
+
+def test_learner_markdown_lists_are_spaced() -> None:
+    assert_markdown_list_spacing(README_PATH.read_text(encoding="utf-8"), "README.md")
+    for notebook_path in sorted(NOTEBOOK_DIR.glob("*.ipynb")):
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+        for number, cell in enumerate(notebook["cells"], 1):
+            if cell["cell_type"] == "markdown":
+                assert_markdown_list_spacing(cell_source(cell), f"{notebook_path.name}, Cell {number}")
+
+
+def assert_no_forward_notebook_references(source: str, notebook_number: int, context: str = "Markdown") -> None:
+    """Allow earlier material and same-notebook sequencing without future pointers."""
+    literals = [match.span() for match in EDITORIAL_LITERAL_PATTERN.finditer(source)]
+    for link in re.finditer(r"\[[^\]\n]+\]\((?:\./)?(\d+)-[^)\n]+\.ipynb(?:#[^)\n]*)?\)", source):
+        if any(start <= link.start() and end >= link.end() for start, end in literals):
+            continue
+        assert int(link[1]) <= notebook_number, f"{context}: remove forward notebook link"
+    prose = editorial_prose(source)
+    assert re.search(
+        r"\b(?:next|later|following|subsequent|future)\s+notebooks?\b"
+        r"|\blater\s+(?:[\w-]+\s+){0,2}(?:activities|lessons|exercises)\b",
+        prose,
+        re.IGNORECASE,
+    ) is None, f"{context}: remove forward notebook wording"
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "Review [Notebook 1](./1-introduction.ipynb).",
+        "See [this section](#checkpoint) and run the next cell.",
+        "See [Notebook 2](./2-current.ipynb#section) later in this notebook.",
+        "Later in this notebook, inspect the graph.",
+        "```markdown\nThe next notebook is [Notebook 3](./3-future.ipynb).\n```",
+    ],
+)
+def test_forward_notebook_references_accept_earlier_material_and_literals(source: str) -> None:
+    assert_no_forward_notebook_references(source, 2)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "See [Notebook 3](./3-future.ipynb).",
+        "The next notebook explains discovery.",
+        "Later notebooks cover source code.",
+        "The __following notebook__ continues the exercise.",
+        "Later graph-inspection activities examine delivery policies.",
+    ],
+)
+def test_forward_notebook_references_reject_future_pointers(source: str) -> None:
+    with pytest.raises(AssertionError, match="forward notebook"):
+        assert_no_forward_notebook_references(source, 2)
+
+
+def test_notebook_prose_has_no_forward_references() -> None:
+    for notebook_path in sorted(NOTEBOOK_DIR.glob("*.ipynb")):
+        notebook_number = int(notebook_path.name.partition("-")[0])
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+        source = notebook_markdown_source(notebook)
+        assert_no_forward_notebook_references(source, notebook_number, notebook_path.name)
 
 
 def test_numbered_notebook_references_are_individually_linked() -> None:
-    """Keep numbered course references direct and individually actionable."""
+    """Keep numbered course references linked and consistently capitalized."""
     readme_source = README_PATH.read_text(encoding="utf-8")
     learner_sources = {README_PATH: readme_source}
 
@@ -1369,6 +1602,8 @@ def test_numbered_notebook_references_are_individually_linked() -> None:
         assert (
             UNLINKED_NOTEBOOK_REFERENCE_PATTERN.search(learner_source) is None
         ), learner_path
+        prose = editorial_prose(learner_source)
+        assert re.search(r"\[notebook\s+\d+\]", prose) is None, learner_path
 
 
 def test_cross_lx_references_use_clear_linked_titles() -> None:
@@ -1422,6 +1657,26 @@ def test_checkpoint_data_matches_interactive_notebooks() -> None:
 
     for notebook_name in sorted(INTERACTIVE_CHECKPOINT_NOTEBOOKS):
         assert_reveal_self_check(notebook_name)
+
+
+@pytest.mark.parametrize("notebook_name", sorted(INTERACTIVE_CHECKPOINT_NOTEBOOKS))
+def test_checkpoint_code_literals_use_inline_code(notebook_name: str) -> None:
+    """Present checkpoint commands and identifiers like the other LXs."""
+    sidecar_path = checkpoint_data_path(notebook_name)
+    checkpoint_data = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    literal_pattern = re.compile(
+        r"\b\w+_\w+\b|(?<!\w)~?/\w[\w./-]*"
+        r"|\bros2 (?:pkg|topic|interface)\b|\bdocker ps\b"
+        r"|\b(?:package\.xml|install/setup\.bash)\b"
+    )
+
+    for checkpoint in checkpoint_data["checkpoints"]:
+        for field in ("question", "model_answer"):
+            text = checkpoint[field]
+            context = f"{sidecar_path.name}: {checkpoint['id']}: {field}"
+            assert text.count("`") % 2 == 0, context
+            prose = checkpoint_self_check.INLINE_CODE_PATTERN.sub("", text)
+            assert literal_pattern.search(prose) is None, f"{context}: {prose}"
 
 
 def test_shared_checkpoint_self_check_helper_is_valid() -> None:
@@ -1479,6 +1734,24 @@ def test_model_answer_uses_compact_paragraph_spacing() -> None:
     assert "<a href='#source'>Source</a>" in self_check.model_answer.value
 
 
+def test_duckiedrone_inspection_returns_to_base_station() -> None:
+    """Close each inspection shell before verifying the base-station context."""
+    notebook_path = NOTEBOOK_DIR / "8-inspect-a-duckiedrone-ros-2-graph.ipynb"
+    notebook_text = notebook_path.read_text(encoding="utf-8")
+    notebook = json.loads(notebook_text)
+    source = notebook_markdown_source(notebook)
+    cleanup_start = source.index("## Leave the service shell")
+    cleanup_end = source.index("## Further reading", cleanup_start)
+    cleanup_source = source[cleanup_start:cleanup_end]
+    cleanup_commands = re.findall(r"```bash\n(.*?)```", cleanup_source, re.DOTALL)
+
+    assert cleanup_commands == ["exit\n", "exit\n", "hostname\n"]
+    assert "while the service container continues running" in cleanup_source
+    assert "base-station terminal" in cleanup_source
+    assert "the device being inspected" not in source
+    assert "the device's reported state" not in source
+
+
 def test_starter_nodes_are_valid_python() -> None:
     """Keep learner templates parseable before they are built in ROS 2."""
     node_paths = [
@@ -1514,20 +1787,19 @@ def test_readme_has_shared_lx_structure() -> None:
         readme,
         re.MULTILINE,
     )
-    assert "`Software: ente`; `Hardware for optional telemetry: DD24-B`" in readme
+    assert "`Software: ente`; `Hardware: DD24-B`" in readme
     assert re.findall(r"^## .+$", readme, re.MULTILINE) == [
         "## Intended learning outcomes",
         "## Run this LX",
         "## Notebooks",
         "## Prerequisites",
         f"## Complete the {README_EXERCISE_TOPIC} exercise",
-        "## Troubleshooting",
         "## Further reading",
         "## For LX authors",
     ]
 
     notebook_section = readme.split("## Notebooks\n", 1)[1].split("\n## ", 1)[0]
-    assert "| # | Notebook | Content |\n| --- | --- | --- |" in notebook_section
+    assert "| # | Notebook | Description |\n| --- | --- | --- |" in notebook_section
     notebook_rows = re.findall(r"^\| \d+ \|.*\|$", notebook_section, re.MULTILINE)
     assert len(notebook_rows) == len(REQUIRED_NOTEBOOKS)
     for number, (notebook_name, row) in enumerate(
@@ -1546,13 +1818,19 @@ def test_readme_has_shared_lx_structure() -> None:
     prerequisite_headings = re.findall(
         r"^### .+$", prerequisite_section, re.MULTILINE
     )
-    assert prerequisite_headings == [
-        "### Open the dedicated environment",
-        "### Choose the terminal",
-        "### Interactive checkpoints",
-        "### Optional Duckiedrone inspection",
-    ]
+    assert len(prerequisite_headings) == 4
+    assert prerequisite_headings[0] == "### Choose the terminal"
+    assert prerequisite_headings[1] == (
+        f"### {README_EXERCISE_TOPIC} foundations and local practice"
+    )
+    assert prerequisite_headings[-1] == "### Duckiedrone access"
     assert "python3 -m pytest tests/" in readme
+    assert (
+        "Interactive checkpoints require the notebook metadata supplied by "
+        "`dts code editor` and a compatible Jupyter/IPython kernel with "
+        "`ipywidgets` available"
+        in readme
+    )
     assert "ipywidgets" in prerequisite_section
     assert "execution context" in prerequisite_section
     assert "dts code editor --username duckietown" in prerequisite_section

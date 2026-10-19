@@ -4,7 +4,7 @@
 
 # Learning Experience (LX): ROS 2 Middleware on the Duckiedrone
 
-`Software: ente`; `Hardware for optional telemetry: DD24-B`
+`Software: ente`; `Hardware: DD24-B`
 
 ROS 2 provides libraries and tools for organizing robotics applications as communicating nodes. This learning experience follows data through those interfaces, then connects graph observations to the Python code that publishes and receives messages.
 
@@ -15,11 +15,17 @@ The LX is intended for undergraduate engineering students with basic Python and 
 After completing this LX, learners will be able to:
 
 1. Explain nodes, topics, message types, services, actions, parameters, and the roles of client libraries and middleware.
+
 2. Investigate discovery and resolved names using domains, namespaces, and private names.
+
 3. Inspect, build, and source the supplied `ament_python` package and locate its installed executables.
+
 4. Relate `rclpy` timers, executors, and callbacks to publisher and subscriber behavior, then modify the publisher's payload and rate.
+
 5. Observe delivery, QoS settings, arrival rate, and timestamp-based message age to diagnose missing messages.
+
 6. Reuse installed nodes with different node names and topic remappings.
+
 7. Explain the DTPS and MAVROS data paths and optionally inspect a Duckiedrone's flight-controller state interface.
 
 ## Run this LX
@@ -30,17 +36,17 @@ The Duckietown Manual's [LX General Instructions](https://docs.duckietown.com/en
 
 Follow the notebooks in order, skipping the optional Duckiedrone activity when hardware is unavailable. The source changes made in [Notebook 9](./notebooks/9-ros-2-node-lifecycles-and-publishers.ipynb) carry forward into the final two activities.
 
-| # | Notebook | Content |
+| # | Notebook | Description |
 | --- | --- | --- |
 | 1 | [Notebook 1](./notebooks/1-robot-operating-system-2-graph-and-software-layers.ipynb) | ROS 2 graph, interfaces, and software layers |
-| 2 | [Notebook 2](./notebooks/2-ros-2-data-paths-and-duckiedrone-integration.ipynb) | DTPS, sensor bridges, and the PX4–MAVLink–MAVROS data path |
+| 2 | [Notebook 2](./notebooks/2-ros-2-data-paths-and-duckiedrone-integration.ipynb) | DTPS, sensor bridges, and the PX4, MAVLink, and MAVROS data path |
 | 3 | [Notebook 3](./notebooks/3-ros-2-nodes-topics-and-interfaces.ipynb) | Discover a publisher and receive typed messages |
 | 4 | [Notebook 4](./notebooks/4-ros-2-discovery-domains-and-names.ipynb) | Compare domains and resolve absolute, relative, and private names |
 | 5 | [Notebook 5](./notebooks/5-ros-2-workspaces-and-packages.ipynb) | Inspect package files, dependencies, and executable entry points |
 | 6 | [Notebook 6](./notebooks/6-build-and-discover-a-ros-2-package.ipynb) | Build the package, source its overlay, and check discovery |
 | 7 | [Notebook 7](./notebooks/7-inspect-a-local-ros-2-graph.ipynb) | Inspect endpoints and QoS; measure arrival rate and message age |
 | 8 | [Notebook 8](./notebooks/8-inspect-a-duckiedrone-ros-2-graph.ipynb) | Optional: inspect the Duckiedrone's MAVROS state topic |
-| 9 | [Notebook 9](./notebooks/9-ros-2-node-lifecycles-and-publishers.ipynb) | ROS 2 Node Lifecycles and Anatomy of a Publisher: modify payload and rate |
+| 9 | [Notebook 9](./notebooks/9-ros-2-node-lifecycles-and-publishers.ipynb) | Connect callbacks and timers to the publisher's payload and rate |
 | 10 | [Notebook 10](./notebooks/10-ros-2-subscribers-and-diagnosis.ipynb) | Run the subscriber and diagnose missing messages |
 | 11 | [Notebook 11](./notebooks/11-ros-2-names-and-remapping.ipynb) | Give instances distinct names and remap both ends of a topic |
 
@@ -48,11 +54,11 @@ Follow the notebooks in order, skipping the optional Duckiedrone activity when h
 
 Complete the Duckietown Manual's [Initial Setup](https://docs.duckietown.com/ente/duckietown-manual/10-setup/setup-introduction.html) so Docker and the Duckietown Shell (`dts`) are available on the base station or in the Duckietown Workspace. A separate host installation of ROS 2 is unnecessary.
 
-### Open the dedicated environment
+### Choose the terminal
 
 The local exercises can run in the code editor's integrated terminals or in a runtime container opened from the base station or Duckietown Workspace. Use the same method for all terminals in an activity so the processes share one container.
 
-__Option 1: Code editor terminals__
+#### Option 1: Code editor terminals
 
 From the LX checkout in a base-station or Workspace terminal:
 
@@ -64,7 +70,7 @@ The exercise recipe supplies the ROS 2 Jazzy editor environment and prepares the
 
 Once the editor opens, select __Terminal > New Terminal__ for local `ros2` and `colcon` commands. Additional terminals opened through that menu share the exercise container.
 
-__Option 2: Base-station or Workspace terminals__
+#### Option 2: Base-station or Workspace terminals
 
 From the directory containing the LX checkout, build the exercise image and open its runtime shell:
 
@@ -82,8 +88,6 @@ dts devel run attach
 
 Repeat the attachment step when an activity needs a third terminal. In each container shell, follow the notebook's environment-sourcing instructions; an attached shell does not inherit changes made in another shell. The code editor can still be used to read the notebooks and run their interactive checkpoints.
 
-### Choose the terminal
-
 | Task | Execution environment |
 | --- | --- |
 | Start the editor | Base-station or Duckietown Workspace terminal |
@@ -91,17 +95,21 @@ Repeat the attachment step when an activity needs a third terminal. In each cont
 | Connect to a Duckiedrone and list its containers | Base-station connection followed by the Duckiedrone shell |
 | Inspect Duckiedrone ROS 2 telemetry | The `ros2-mavros` shell entered in [Notebook 8](./notebooks/8-inspect-a-duckiedrone-ros-2-graph.ipynb) |
 
+### ROS 2 foundations and local practice
+
 The exercise environment supplies `ros2`, `colcon`, and `COLCON_WS=/code`. [Notebook 7](./notebooks/7-inspect-a-local-ros-2-graph.ipynb) and the subscriber and remapping activities use three terminals. Each notebook identifies which process runs in each terminal and when it should be stopped.
 
-### Interactive checkpoints
+Each notebook ends with an interactive self-check. Select a compatible Python kernel in the supplied editor and run the checkpoint cell. A response must be entered or selected before the answer can be revealed; __Try again__ clears the response.
 
-Each notebook ends with an interactive self-check. Select a compatible Python kernel in the supplied editor and run the checkpoint cell. A response must be entered or selected before the answer can be revealed; “Try again” clears the response.
+Interactive checkpoints require the notebook metadata supplied by `dts code editor` and a compatible Jupyter/IPython kernel with `ipywidgets` available. Here, notebook metadata means the notebook path included in the editor's execution context, which the helper uses to select its question file. It is distinct from machine-specific interpreter metadata in saved notebooks.
 
-The helper uses the notebook path included in the editor's execution context to select its question file. It also requires Jupyter/IPython and `ipywidgets`. This execution context is distinct from the machine-specific interpreter metadata removed from the saved notebooks.
-
-### Optional Duckiedrone inspection
+### Duckiedrone telemetry
 
 [Notebook 8](./notebooks/8-inspect-a-duckiedrone-ros-2-graph.ipynb) requires a Duckiedrone with the ROS 2 stack running. Its connection procedure builds on the [Learning Experience (LX): Linux and Networking on the Duckiedrone](https://github.com/duckietown/lx-dd-linux-and-networking). The activity inspects telemetry inside `ros2-mavros`; subsequent publisher and subscriber exercises return to the dedicated local environment.
+
+### Duckiedrone access
+
+Use a Duckiedrone you own or are authorized to inspect. Open its shell from a base-station or Workspace terminal, following the connection procedure in [Notebook 8](./notebooks/8-inspect-a-duckiedrone-ros-2-graph.ipynb). The telemetry activity leaves flight control and configuration unchanged.
 
 ## Complete the ROS 2 exercise
 
@@ -128,9 +136,9 @@ source "$COLCON_WS/install/setup.bash"
 
 Sourcing normally produces no output. It makes the installed package available to that shell; source changes require rebuilding and restarting the affected node.
 
-## Troubleshooting
+### Troubleshooting
 
-### A publisher runs, but the node listing is empty
+#### A publisher runs, but the node listing is empty
 
 Confirm that the terminals belong to the same exercise environment and compare their `ROS_DOMAIN_ID` and `RMW_IMPLEMENTATION` settings. Then allow a fresh discovery window:
 
@@ -147,7 +155,7 @@ ros2 node list
 
 The next query starts the helper again. This refreshes the observation state without establishing a particular underlying middleware fault. Avoid mixing privileged and ordinary-user inspection sessions.
 
-### The package cannot be found
+#### The package cannot be found
 
 Check that the scoped build succeeded, then source `"$COLCON_WS/install/setup.bash"` in the terminal reporting the error. Check the selected installation with:
 

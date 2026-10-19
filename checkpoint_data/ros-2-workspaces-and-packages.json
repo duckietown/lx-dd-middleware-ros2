@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "colcon-workspace-variable",
-      "question": "The exercise environment defines COLCON_WS=/code. Why should a later command use \"$COLCON_WS\" when referring to the workspace root?",
-      "model_answer": "The variable supplies the configured workspace location. Using it avoids hard-coding /code into commands that should also work with a different configured location. It must be defined in the shell.",
+      "question": "The exercise environment defines `COLCON_WS=/code`. Why should a later command use `\"$COLCON_WS\"` when referring to the workspace root?",
+      "model_answer": "The variable supplies the configured workspace location. Using it avoids hard-coding `/code` into commands that should also work with a different configured location. It must be defined in the shell.",
       "evidence": [
         {
           "label": "Know the exercise workspace",
@@ -14,7 +14,7 @@
     {
       "id": "package-xml-role",
       "question": "A publisher is changed to use a message from another ROS package. Which file declares that additional ROS dependency, and does adding the declaration install it?",
-      "model_answer": "package.xml declares the additional ROS dependency. The declaration records the requirement; the required package must also be available in the environment.",
+      "model_answer": "`package.xml` declares the additional ROS dependency. The declaration records the requirement; the required package must also be available in the environment.",
       "evidence": [
         {
           "label": "What does the code depend on?",
@@ -24,8 +24,8 @@
     },
     {
       "id": "executable-entry-point",
-      "question": "In \"my_subscriber = ros2_pubsub.my_subscriber:main\", which part names the executable, and which function does it call?",
-      "model_answer": "my_subscriber on the left names the executable. It calls main in the Python module ros2_pubsub.my_subscriber. This registration does not determine the ROS node name.",
+      "question": "In `\"my_subscriber = ros2_pubsub.my_subscriber:main\"`, which part names the executable, and which function does it call?",
+      "model_answer": "`my_subscriber` on the left names the executable. It calls `main` in the Python module `ros2_pubsub.my_subscriber`. This registration does not determine the ROS node name.",
       "evidence": [
         {
           "label": "How does an executable name reach the Python code?",

@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "node-definition",
-      "question": "The node listing contains /example_publisher, and the topic listing contains /chatter. What does each name identify?",
-      "model_answer": "/example_publisher identifies the named node created by the publishing command. /chatter identifies the topic on which that node publishes String messages. A node and its topic are different graph entities.",
+      "question": "The node listing contains `/example_publisher`, and the topic listing contains `/chatter`. What does each name identify?",
+      "model_answer": "`/example_publisher` identifies the named node created by the publishing command. `/chatter` identifies the topic on which that node publishes `String` messages. A node and its topic are different graph entities.",
       "evidence": [
         {
           "label": "Find the node and its topic",
@@ -13,7 +13,7 @@
     },
     {
       "id": "message-contract",
-      "question": "A subscriber expects std_msgs/msg/Int32 on /chatter, while the running publisher sends std_msgs/msg/String with data containing '42'. Why is matching the topic name insufficient?",
+      "question": "A subscriber expects `std_msgs/msg/Int32` on `/chatter`, while the running publisher sends `std_msgs/msg/String` with `data` containing `'42'`. Why is matching the topic name insufficient?",
       "model_answer": "The message types differ. The publisher sends text, while the subscriber expects a signed 32-bit integer. A shared topic name and field name do not provide automatic type conversion.",
       "evidence": [
         {

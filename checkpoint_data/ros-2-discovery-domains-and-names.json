@@ -2,7 +2,7 @@
   "checkpoints": [
     {
       "id": "middleware-discovery",
-      "question": "Terminal 1 continues publishing in domain 42. An observation in domain 43 returns an empty node listing, while an observation in domain 42 finds /example_publisher. What does this establish?",
+      "question": "Terminal 1 continues publishing in domain 42. An observation in domain 43 returns an empty node listing, while an observation in domain 42 finds `/example_publisher`. What does this establish?",
       "model_answer": "The publisher is running, but its visibility depends on the observer's domain. The empty domain-43 listing does not mean the publisher stopped. Matching domains is necessary for this local exchange; network reachability and compatible middleware configuration must also permit discovery.",
       "evidence": [
         {
@@ -13,8 +13,8 @@
     },
     {
       "id": "private-name-instance",
-      "question": "Two publishers use ~/state in the root namespace. Their node names are example_publisher and second_publisher. Do they publish to the same resolved topic?",
-      "model_answer": "No. Their topics resolve to /example_publisher/state and /second_publisher/state. Private-name expansion includes the node name. Using the same node name and namespace would remove that distinction.",
+      "question": "Two publishers use `~/state` in the root namespace. Their node names are `example_publisher` and `second_publisher`. Do they publish to the same resolved topic?",
+      "model_answer": "No. Their topics resolve to `/example_publisher/state` and `/second_publisher/state`. Private-name expansion includes the node name. Using the same node name and namespace would remove that distinction.",
       "evidence": [
         {
           "label": "Predict the effect of a different node name",
@@ -24,8 +24,8 @@
     },
     {
       "id": "private-name-resolution",
-      "question": "A node named /amelia/camera_node creates a publisher on ~/state. What is the resolved topic, and does \"private\" prevent another node from subscribing?",
-      "model_answer": "The topic resolves to /amelia/camera_node/state. \"Private\" describes name expansion using the node's namespace and name; it does not impose access control.",
+      "question": "A node named `/amelia/camera_node` creates a publisher on `~/state`. What is the resolved topic, and does \"private\" prevent another node from subscribing?",
+      "model_answer": "The topic resolves to `/amelia/camera_node/state`. \"Private\" describes name expansion using the node's namespace and name; it does not impose access control.",
       "evidence": [
         {
           "label": "Add a namespace",

@@ -2,8 +2,8 @@
   "checkpoints": [
     {
       "id": "device-inspection-shells",
-      "question": "Which shell should run docker ps, and which should run ros2 topic list -t during this activity?",
-      "model_answer": "docker ps runs in the connected Duckiedrone shell to identify its containers. ros2 topic list -t runs inside the ros2-mavros container, where the inspection tools use the configured ROS 2 environment.",
+      "question": "Which shell should run `docker ps`, and which should run `ros2 topic list -t` during this activity?",
+      "model_answer": "`docker ps` runs in the connected Duckiedrone shell to identify its containers. `ros2 topic list -t` runs inside the `ros2-mavros` container, where the inspection tools use the configured ROS 2 environment.",
       "evidence": [
         {
           "label": "Enter the Duckiedrone shell",
@@ -13,7 +13,7 @@
     },
     {
       "id": "retained-state",
-      "question": "Why does receiving one message from a TRANSIENT_LOCAL state publisher leave a question about freshness?",
+      "question": "Why does receiving one message from a `TRANSIENT_LOCAL` state publisher leave a question about freshness?",
       "model_answer": "The publisher can retain samples for compatible late-joining subscriptions, so the received message may have been produced before the observer joined. Its timestamp and subsequent updates provide further evidence about freshness and continued publication.",
       "evidence": [
         {
@@ -24,7 +24,7 @@
     },
     {
       "id": "bridge-state-delivery",
-      "question": "A state message arrives with connected: false. Which part of the data path has been demonstrated, and which connection needs investigation?",
+      "question": "A state message arrives with `connected: false`. Which part of the data path has been demonstrated, and which connection needs investigation?",
       "model_answer": "The observer received a message through the ROS 2 topic, demonstrating delivery to that observer. The sample reports that MAVROS lacks its flight-controller connection, so that upstream connection needs investigation.",
       "evidence": [
         {
