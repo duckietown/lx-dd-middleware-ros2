@@ -53,10 +53,10 @@ Complete the Duckietown Manual's [Initial Setup](https://docs.duckietown.com/ent
 From the LX checkout in a base-station or Workspace terminal:
 
 ```bash
-dts code editor --recipe-version fix/ros2-editor-workspace-permissions --username duckietown
+dts code editor --username duckietown
 ```
 
-The explicit recipe version supplies the ROS 2 Jazzy editor setup and prepares generated build directories for the editor user. The default `ente` recipe selected by `.dtproject` does not yet contain those changes, so the explicit version is required for this iteration. The recipe is maintained in the [paired recipe repository](https://github.com/duckietown/lx-dd-middleware-ros2-recipe/tree/fix/ros2-editor-workspace-permissions).
+The exercise recipe supplies the ROS 2 Jazzy editor environment and prepares the build directories for the editor user.
 
 Once the editor opens, select __Terminal > New Terminal__ for local `ros2` and `colcon` commands. Additional terminals opened through that menu share the exercise container.
 
