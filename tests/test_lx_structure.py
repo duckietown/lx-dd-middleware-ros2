@@ -1555,7 +1555,7 @@ def test_readme_has_shared_lx_structure() -> None:
     assert "python3 -m pytest tests/" in readme
     assert "ipywidgets" in prerequisite_section
     assert "execution context" in prerequisite_section
-    assert "dts code editor --recipe-version fix/ros2-editor-workspace-permissions" in prerequisite_section
+    assert "dts code editor --username duckietown" in prerequisite_section
     assert 'colcon build --base-paths "$LX_DIR/packages" --packages-select ros2_pubsub' in readme
     assert "ros2 node list --no-daemon --spin-time 5" in readme
     assert "ros2 daemon stop" in readme
