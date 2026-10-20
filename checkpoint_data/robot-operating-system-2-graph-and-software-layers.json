@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "ros2-graph-purpose",
+      "question": "The pose-estimation algorithm is replaced. What must remain compatible for the existing controller to keep using its output, and why?",
+      "model_answer": "The controller still needs the expected topic, message type, and meaning of the pose data, including units and coordinate frame. Keeping that interface compatible allows the controller to consume the estimates without depending on the estimator's internal algorithm.",
+      "evidence": [
+        {
+          "label": "The ROS 2 graph",
+          "anchor": "#the-ros-2-graph"
+        }
+      ]
+    },
+    {
+      "id": "ros2-and-linux",
+      "question": "In a Python publisher running on Linux, which responsibilities belong to the application code, ROS 2, and the operating system?",
+      "model_answer": "The application decides what data to publish and when. ROS 2 provides the node and publisher interfaces and the underlying discovery and message-exchange facilities. Linux supplies the process, device, and networking facilities on which the software runs.",
+      "evidence": [
+        {
+          "label": "Software layers",
+          "anchor": "#software-layers"
+        }
+      ]
+    }
+  ]
+}

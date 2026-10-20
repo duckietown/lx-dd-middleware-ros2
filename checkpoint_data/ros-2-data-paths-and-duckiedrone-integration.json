@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "bridge-boundary-diagnosis",
+      "question": "Camera data is available through DTPS, but a ROS 2 application receives no images. Which part of the path is useful to inspect next, and why?",
+      "model_answer": "The DTPS-to-ROS 2 bridge and its ROS 2 output are useful next inspection points. Data has reached DTPS, but it still needs to pass through the bridge and reach a compatible subscriber. The observation narrows the investigation without establishing which downstream component is responsible.",
+      "evidence": [
+        {
+          "label": "Follow a data path",
+          "anchor": "#follow-a-data-path"
+        }
+      ]
+    },
+    {
+      "id": "installed-interface-and-telemetry",
+      "question": "A terminal successfully displays `sensor_msgs/msg/Imu`. Does that establish that flight-controller telemetry is arriving? What route would live telemetry follow?",
+      "model_answer": "Displaying the definition establishes that the message interface is installed. Live telemetry would travel from PX4 through MAVLink and MAVROS to a ROS 2 topic, then to a subscriber. Observing received messages is needed to establish delivery.",
+      "evidence": [
+        {
+          "label": "Compare the fields",
+          "anchor": "#compare-the-fields"
+        }
+      ]
+    }
+  ]
+}

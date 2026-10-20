@@ -1,0 +1,26 @@
+{
+  "checkpoints": [
+    {
+      "id": "overlay-sourcing",
+      "question": "A build reports that `ros2_pubsub` finished successfully, but `ros2 pkg prefix ros2_pubsub` still reports \"`Package not found`\". What should be checked next?",
+      "model_answer": "Check whether the workspace overlay has been sourced in the observing terminal. From the workspace root, `source install/setup.bash`, then repeat the package lookup. The build prepares installed files, while sourcing supplies the current shell with the paths needed to find them.",
+      "evidence": [
+        {
+          "label": "Make the installation available to the terminal",
+          "anchor": "#make-the-installation-available-to-the-terminal"
+        }
+      ]
+    },
+    {
+      "id": "package-discovery-commands",
+      "question": "Which observations establish where the current terminal finds `ros2_pubsub` and which executable names it exposes?",
+      "model_answer": "`ros2 pkg prefix ros2_pubsub` reports the selected installation prefix, while `ros2 pkg executables ros2_pubsub` lists its registered executables. For this build, the prefix is `/code/install/ros2_pubsub` and the executable names are `my_publisher` and `my_subscriber`.",
+      "evidence": [
+        {
+          "label": "Confirm package discovery",
+          "anchor": "#confirm-package-discovery"
+        }
+      ]
+    }
+  ]
+}

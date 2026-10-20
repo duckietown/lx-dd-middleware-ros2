@@ -1,0 +1,43 @@
+{
+  "checkpoints": [
+    {
+      "id": "node-definition",
+      "question": "The node listing contains `/example_publisher`, and the topic listing contains `/chatter`. What does each name identify?",
+      "model_answer": "`/example_publisher` identifies the named node created by the publishing command. `/chatter` identifies the topic on which that node publishes `String` messages. A node and its topic are different graph entities.",
+      "evidence": [
+        {
+          "label": "Find the node and its topic",
+          "anchor": "#find-the-node-and-its-topic"
+        }
+      ]
+    },
+    {
+      "id": "message-contract",
+      "question": "A subscriber expects `std_msgs/msg/Int32` on `/chatter`, while the running publisher sends `std_msgs/msg/String` with `data` containing `'42'`. Why is matching the topic name insufficient?",
+      "model_answer": "The message types differ. The publisher sends text, while the subscriber expects a signed 32-bit integer. A shared topic name and field name do not provide automatic type conversion.",
+      "evidence": [
+        {
+          "label": "Why must the message types agree?",
+          "anchor": "#why-must-the-message-types-agree"
+        }
+      ]
+    },
+    {
+      "id": "interface-selection",
+      "question": "A navigation task must report progress and support cancellation before reaching its goal. Which interface best expresses those requirements?",
+      "model_answer": "An action represents the task and its progress, completion, and cancellation. A position topic supplies observations, while a service supplies a request-response exchange.",
+      "evidence": [
+        {
+          "label": "When a stream is not the whole interaction",
+          "anchor": "#when-a-stream-is-not-the-whole-interaction"
+        }
+      ],
+      "choices": [
+        "A topic carrying position readings.",
+        "A service returning one response when navigation finishes.",
+        "An action accepting a goal and providing feedback, a result, and cancellation."
+      ],
+      "correct_choice": "An action accepting a goal and providing feedback, a result, and cancellation."
+    }
+  ]
+}

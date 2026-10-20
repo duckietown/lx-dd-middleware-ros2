@@ -1,0 +1,48 @@
+{
+  "checkpoints": [
+    {
+      "id": "single-message-observation",
+      "question": "Continuous `echo` changes the subscription count from zero to one. How can a single message be received without leaving that observer running?",
+      "model_answer": "Run `ros2 topic echo --once /chatter std_msgs/msg/String`. It creates a temporary subscription, receives and displays one message, then exits. Discovery may take a short time to reflect the subscription's removal.",
+      "evidence": [
+        {
+          "label": "Observe messages and the subscription they create",
+          "anchor": "#observe-messages-and-the-subscription-they-create"
+        }
+      ]
+    },
+    {
+      "id": "message-type-inspection",
+      "question": "Which observation identifies the publisher and its delivery policies, and which command reveals the fields of its `String` messages?",
+      "model_answer": "`ros2 topic info --verbose /chatter` identifies the discovered publisher endpoint and its QoS policies. `ros2 interface show std_msgs/msg/String` displays the installed message definition, including `string data`.",
+      "evidence": [
+        {
+          "label": "Connect the endpoint to its delivery settings",
+          "anchor": "#connect-the-endpoint-to-its-delivery-settings"
+        }
+      ]
+    },
+    {
+      "id": "observed-message-rate",
+      "question": "The publisher is configured for one message per second, and `ros2 topic hz` reports an average rate of 0.999. How should that result be interpreted?",
+      "model_answer": "The observer receives messages at approximately the configured rate. Small differences can arise from scheduling and measurement timing. The command measures arrival rate at its subscription.",
+      "evidence": [
+        {
+          "label": "Measure the arriving message rate",
+          "anchor": "#measure-the-arriving-message-rate"
+        }
+      ]
+    },
+    {
+      "id": "message-latency",
+      "question": "A topic arrives at a steady 10 Hz, while its messages are two seconds old when received. What do the rate and delay measurements reveal?",
+      "model_answer": "The observer receives messages regularly, approximately every 0.1 seconds, but their timestamps indicate a two-second age at reception. Interpreting that age requires knowing where the timestamps were assigned and whether the publisher and observer clocks agree.",
+      "evidence": [
+        {
+          "label": "A note on latency",
+          "anchor": "#a-note-on-latency"
+        }
+      ]
+    }
+  ]
+}
