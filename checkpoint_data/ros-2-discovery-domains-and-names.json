@@ -2,7 +2,7 @@
   "checkpoints": [
     {
       "id": "middleware-discovery",
-      "question": "Terminal 1 continues publishing in domain 42. An observation in domain 43 returns an empty node listing, while an observation in domain 42 finds `/example_publisher`. What does this establish?",
+      "question": "Terminal 1 continues publishing in domain 0. An observation in domain 43 returns an empty node listing, while an observation in domain 0 finds `/example_publisher`. What does this establish?",
       "model_answer": "The publisher is running, but its visibility depends on the observer's domain. The empty domain-43 listing does not mean the publisher stopped. Matching domains is necessary for this local exchange; network reachability and compatible middleware configuration must also permit discovery.",
       "evidence": [
         {
